@@ -27,51 +27,40 @@ pipeline {
 
     stage('Terraform Init') {
       steps {
-        dir('itop-poc') {
-          sh 'pwd && ls -la'
-          sh 'terraform init'
-        }
+        sh 'terraform init'
       }
     }
 
     stage('Terraform Validate') {
       steps {
-        dir('itop-poc') {
-          sh 'terraform validate'
-        }
+        sh 'terraform validate'
       }
     }
 
     stage('Terraform Plan') {
       steps {
-        dir('itop-poc') {
-          sh 'terraform plan -var-file="terraform.tfvars" -out=tfplan'
-        }
+        sh 'terraform plan -var-file="terraform.tfvars" -out=tfplan'
       }
     }
 
     stage('Terraform Apply') {
       steps {
-        dir('itop-poc') {
-          sh 'terraform apply -auto-approve tfplan'
-        }
+        sh 'terraform apply -auto-approve tfplan'
       }
     }
 
     stage('Show Outputs') {
       steps {
-        dir('itop-poc') {
-          script {
-            echo "=== iTop PoC Deployment Complete ==="
-            sh 'terraform output'
-            
-            def itopUrl = sh(
-              script: 'terraform output -raw itop_url',
-              returnStdout: true
-            ).trim()
-            
-            echo "=== Access iTop at: ${itopUrl} ==="
-          }
+        script {
+          echo "=== iTop PoC Deployment Complete ==="
+          sh 'terraform output'
+          
+          def itopUrl = sh(
+            script: 'terraform output -raw itop_url',
+            returnStdout: true
+          ).trim()
+          
+          echo "=== Access iTop at: ${itopUrl} ==="
         }
       }
     }

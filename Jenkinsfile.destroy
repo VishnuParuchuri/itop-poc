@@ -18,33 +18,25 @@ pipeline {
 
     stage('Terraform Init') {
       steps {
-        dir('itop-poc') {
-          sh 'terraform init'
-        }
+        sh 'terraform init'
       }
     }
 
     stage('Terraform Validate') {
       steps {
-        dir('itop-poc') {
-          sh 'terraform validate'
-        }
+        sh 'terraform validate'
       }
     }
 
     stage('Terraform Plan Destroy') {
       steps {
-        dir('itop-poc') {
-          sh 'terraform plan -destroy -var-file="terraform.tfvars" -out=tfdestroy'
-        }
+        sh 'terraform plan -destroy -var-file="terraform.tfvars" -out=tfdestroy'
       }
     }
 
     stage('Terraform Destroy') {
       steps {
-        dir('itop-poc') {
-          sh 'terraform apply -auto-approve tfdestroy'
-        }
+        sh 'terraform apply -auto-approve tfdestroy'
       }
     }
   }
