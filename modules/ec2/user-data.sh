@@ -17,7 +17,7 @@ systemctl enable httpd
     echo "Installing additional packages..."
     echo "<h1>Server is running</h1><p>$(date)</p><p>Installing packages...</p>" > ${itop_web_root}/index.html
     yum update -y
-    yum install -y php-mysqlnd php-gd php-xml php-mbstring php-zip wget unzip mysql
+    yum install -y php-pdo php-mysqlnd php-gd php-xml php-mbstring php-zip wget unzip mysql
     
     # Restart Apache to load MySQL driver
     systemctl restart httpd
