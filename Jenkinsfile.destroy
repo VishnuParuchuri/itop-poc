@@ -18,7 +18,7 @@ pipeline {
 
     stage('Terraform Init') {
       steps {
-        dir('itop-aws-poc') {
+        dir('itop-poc') {
           sh 'terraform init'
         }
       }
@@ -26,7 +26,7 @@ pipeline {
 
     stage('Terraform Validate') {
       steps {
-        dir('itop-aws-poc') {
+        dir('itop-poc') {
           sh 'terraform validate'
         }
       }
@@ -34,7 +34,7 @@ pipeline {
 
     stage('Terraform Plan Destroy') {
       steps {
-        dir('itop-aws-poc') {
+        dir('itop-poc') {
           sh 'terraform plan -destroy -var-file="terraform.tfvars" -out=tfdestroy'
         }
       }
@@ -42,7 +42,7 @@ pipeline {
 
     stage('Terraform Destroy') {
       steps {
-        dir('itop-aws-poc') {
+        dir('itop-poc') {
           sh 'terraform apply -auto-approve tfdestroy'
         }
       }
