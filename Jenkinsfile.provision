@@ -18,9 +18,17 @@ pipeline {
       }
     }
 
+    stage('Debug Directory Structure') {
+      steps {
+        sh 'pwd && ls -la'
+        sh 'find . -name "*.tf" -o -name "*.tfvars"'
+      }
+    }
+
     stage('Terraform Init') {
       steps {
         dir('itop-poc') {
+          sh 'pwd && ls -la'
           sh 'terraform init'
         }
       }
