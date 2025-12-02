@@ -20,7 +20,7 @@ output "rds_identifier" {
 
 output "itop_url" {
   description = "URL to access iTop"
-  value       = "http://${module.ec2.public_ip}/${var.itop_web_path}"
+  value       = "http://${module.ec2.public_ip}/itop"
 }
 
 

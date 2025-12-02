@@ -1,7 +1,3 @@
-provider "aws" {
-  region = var.aws_region
-}
-
 # Use default VPC (as per assumption)
 data "aws_vpc" "default" {
   default = true
@@ -19,7 +15,7 @@ data "aws_subnets" "default" {
 # Security Groups module
 # -------------------------
 module "security" {
-  source = "./modules/security"
+  source = "./modules/security_group"
 
   vpc_id       = data.aws_vpc.default.id
   project_name = var.project_name

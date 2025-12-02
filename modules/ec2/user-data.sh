@@ -1,28 +1,18 @@
 #!/bin/bash
-# Update OS
 yum update -y
+yum install -y httpd php php-mysqlnd php-gd php-xml php-mbstring php-zip wget unzip mysql
 
-# Install Apache, PHP, MySQL PHP extension, wget, unzip
-yum install -y httpd php php-mysqlnd php-json php-mbstring wget unzip
-
-systemctl enable httpd
 systemctl start httpd
+systemctl enable httpd
 
-# Go to web root
 cd ${itop_web_root}
-
-# Download latest iTop
-wget https://sourceforge.net/projects/itop/files/latest/download -O itop.zip
-
+wget https://sourceforge.net/projects/itop/files/itop/3.1.0/iTop-3.1.0-11973.zip/download -O itop.zip
 unzip itop.zip
+mv web/* .
+rmdir web
+rm itop.zip
 
-# This folder name changes version to version, so just move first itop* folder
-ITOP_DIR=$(ls -d itop* | head -n 1)
+chown -R apache:apache ${itop_web_root}
+chmod -R 755 ${itop_web_root}
 
-# Move/rename to "itop"
-if [ "$ITOP_DIR" != "itop" ]; then
-  mv "$ITOP_DIR" itop
-fi
-
-chown -R apache:apache itop
-chmod -R 755 itop
+systemctl restart httpd

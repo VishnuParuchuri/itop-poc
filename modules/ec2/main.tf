@@ -1,4 +1,4 @@
-resource "aws_instance" "this" {
+resource "aws_instance" "web" {
   ami                    = var.ami_id
   instance_type          = var.instance_type
   subnet_id              = var.subnet_id
@@ -6,9 +6,9 @@ resource "aws_instance" "this" {
   associate_public_ip_address = var.associate_public_ip
   key_name                    = var.key_name
 
-  user_data = templatefile("${path.module}/user_data.sh.tpl", {
+  user_data = base64encode(templatefile("${path.module}/user-data.sh", {
     itop_web_root = var.itop_web_root
-  })
+  }))
 
   root_block_device {
     volume_size = var.root_volume_size_gb
