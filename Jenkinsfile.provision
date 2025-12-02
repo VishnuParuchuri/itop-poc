@@ -1,0 +1,67 @@
+pipeline {
+  agent any
+
+  environment {
+    // These IDs must match Jenkins credentials IDs you create
+    AWS_ACCESS_KEY_ID     = credentials('aws-access-key-id')
+    AWS_SECRET_ACCESS_KEY = credentials('aws-secret-access-key')
+    AWS_DEFAULT_REGION    = 'ap-south-1'   // same as aws_region in terraform.tfvars
+  }
+
+  stages {
+
+    stage('Checkout') {
+      steps {
+        // Pull the Terraform code from your Git repo
+        checkout scm
+      }
+    }
+
+    stage('Terraform Init') {
+      steps {
+        // Download provider plugins, setup .terraform folder
+        sh 'terraform init'
+      }
+    }
+
+    stage('Terraform Validate') {
+      steps {
+        // Check that TF files are syntactically correct
+        sh 'terraform validate'
+      }
+    }
+
+    stage('Terraform Plan') {
+      steps {
+        // Creates a plan file (tfplan) using values from terraform.tfvars
+        sh 'terraform plan -var-file="terraform.tfvars" -out=tfplan'
+      }
+    }
+
+    stage('Manual Approval') {
+      steps {
+        script {
+          // Wait for human approval before applying changes
+          timeout(time: 15, unit: 'MINUTES') {
+            input message: 'Do you want to APPLY this Terraform plan to AWS?',
+                  ok: 'Yes, apply changes'
+          }
+        }
+      }
+    }
+
+    stage('Terraform Apply') {
+      steps {
+        // Apply exactly the plan that was approved
+        sh 'terraform apply -auto-approve tfplan'
+      }
+    }
+
+    stage('Show Outputs') {
+      steps {
+        // Print useful info like itop_url, ec2_public_ip, rds_endpoint etc.
+        sh 'terraform output'
+      }
+    }
+  }
+}

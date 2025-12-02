@@ -1,0 +1,9 @@
+aws_region        = "ap-south-1"
+environment       = "poc"
+instance_type     = "t3.small"
+key_name          = ""  # Optional: Add your key pair name
+allowed_ssh_cidr  = "0.0.0.0/0"  # Restrict to your IP for security
+db_name           = "itopdb"
+db_username       = "itopuser"
+db_password       = "YourSecurePassword123!"  # Change this!
+db_instance_class = "db.t3.micro"
