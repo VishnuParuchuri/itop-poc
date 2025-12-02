@@ -3,7 +3,7 @@ environment       = "poc"
 project_name      = "itop-poc"
 
 # EC2 Configuration
-ec2_ami_id               = "ami-0c02fb55956c7d316"  # Amazon Linux 2 ap-south-1
+ec2_ami_id               = "ami-0d176f79571d18a8f"  # Amazon Linux 2023 ap-south-1
 ec2_instance_type        = "t3.small"
 ec2_root_volume_size     = 20
 ec2_associate_public_ip  = true
