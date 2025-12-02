@@ -19,6 +19,9 @@ systemctl enable httpd
     yum update -y
     yum install -y php-mysqlnd php-gd php-xml php-mbstring php-zip wget unzip mysql
     
+    # Restart Apache to load MySQL driver
+    systemctl restart httpd
+    
     # Create a simple PHP demo to test the infrastructure
     cd ${itop_web_root}
     echo "Creating demo application..."
