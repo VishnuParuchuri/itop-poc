@@ -37,27 +37,43 @@ echo "<h1>iTop PoC Infrastructure Demo</h1>";
 echo "<p>Server Time: " . date('Y-m-d H:i:s') . "</p>";
 echo "<p>PHP Version: " . phpversion() . "</p>";
 
+// Check PHP extensions
+echo "<h3>PHP Extensions Status</h3>";
+echo "<p>PDO: " . (extension_loaded('pdo') ? '✅ Loaded' : '❌ Not Loaded') . "</p>";
+echo "<p>PDO MySQL: " . (extension_loaded('pdo_mysql') ? '✅ Loaded' : '❌ Not Loaded') . "</p>";
+echo "<p>MySQLi: " . (extension_loaded('mysqli') ? '✅ Loaded' : '❌ Not Loaded') . "</p>";
+
+// List all loaded extensions
+echo "<details><summary>All Loaded Extensions</summary>";
+echo "<p>" . implode(', ', get_loaded_extensions()) . "</p>";
+echo "</details>";
+
 // Database connection test
 $host = 'itop-poc-poc-mysql.cmxfeub41qnk.ap-south-1.rds.amazonaws.com';
 $dbname = 'itopdb';
 $username = 'itopuser';
 $password = 'YourPasswordHere'; // Replace with actual password
 
-try {
-    $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    echo "<p style='color: green;'>✅ Database Connection: SUCCESS</p>";
-    echo "<p>Connected to: $host</p>";
-    echo "<p>Database: $dbname</p>";
-    
-    // Test query
-    $stmt = $pdo->query('SELECT VERSION() as version');
-    $result = $stmt->fetch();
-    echo "<p>MySQL Version: " . $result['version'] . "</p>";
-    
-} catch(PDOException $e) {
-    echo "<p style='color: red;'>❌ Database Connection: FAILED</p>";
-    echo "<p>Error: " . $e->getMessage() . "</p>";
+echo "<h3>Database Connection Test</h3>";
+if (extension_loaded('pdo_mysql')) {
+    try {
+        $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        echo "<p style='color: green;'>✅ Database Connection: SUCCESS</p>";
+        echo "<p>Connected to: $host</p>";
+        echo "<p>Database: $dbname</p>";
+        
+        // Test query
+        $stmt = $pdo->query('SELECT VERSION() as version');
+        $result = $stmt->fetch();
+        echo "<p>MySQL Version: " . $result['version'] . "</p>";
+        
+    } catch(PDOException $e) {
+        echo "<p style='color: red;'>❌ Database Connection: FAILED</p>";
+        echo "<p>Error: " . $e->getMessage() . "</p>";
+    }
+} else {
+    echo "<p style='color: red;'>❌ PDO MySQL driver not loaded</p>";
 }
 
 echo "<hr>";
