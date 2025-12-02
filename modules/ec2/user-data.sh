@@ -15,16 +15,19 @@ systemctl enable httpd
 # Continue with full installation in background
 {
     echo "Installing additional packages..."
+    echo "<h1>Server is running</h1><p>$(date)</p><p>Installing packages...</p>" > ${itop_web_root}/index.html
     yum update -y
     yum install -y php-mysqlnd php-gd php-xml php-mbstring php-zip wget unzip mysql
     
     # Download and install iTop
     cd ${itop_web_root}
     echo "Downloading iTop..."
+    echo "<h1>Server is running</h1><p>$(date)</p><p>Downloading iTop (this may take a few minutes)...</p>" > ${itop_web_root}/index.html
     wget https://sourceforge.net/projects/itop/files/itop/3.1.0/iTop-3.1.0-11973.zip/download -O itop.zip
     
     if [ -f itop.zip ]; then
         echo "Extracting iTop..."
+        echo "<h1>Server is running</h1><p>$(date)</p><p>Extracting iTop...</p>" > ${itop_web_root}/index.html
         unzip itop.zip
         if [ -d web ]; then
             mv web itop
@@ -33,10 +36,12 @@ systemctl enable httpd
             echo "<h1>Server is running</h1><p>$(date)</p><p>iTop installation completed! <a href='/itop'>Access iTop</a></p>" > ${itop_web_root}/index.html
             echo "iTop installation completed"
         else
+            echo "<h1>Server is running</h1><p>$(date)</p><p>Error: Installation failed - web directory not found</p>" > ${itop_web_root}/index.html
             echo "Error: web directory not found after extraction"
         fi
         rm itop.zip
     else
+        echo "<h1>Server is running</h1><p>$(date)</p><p>Error: Failed to download iTop</p>" > ${itop_web_root}/index.html
         echo "Error: Failed to download iTop"
     fi
     
