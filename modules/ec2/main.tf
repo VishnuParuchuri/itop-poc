@@ -9,6 +9,7 @@ resource "aws_instance" "web" {
   user_data = base64encode(templatefile("${path.module}/user-data.sh", {
     itop_web_root = var.itop_web_root
   }))
+  user_data_replace_on_change = true
 
   root_block_device {
     volume_size = var.root_volume_size_gb
