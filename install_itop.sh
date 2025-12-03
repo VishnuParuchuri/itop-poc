@@ -31,8 +31,7 @@ dnf install -y \
   php-xml \
   php-gd \
   php-soap \
-  unzip \
-  curl
+  unzip
 
 # 3. Enable + start Apache
 systemctl enable httpd
