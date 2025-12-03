@@ -61,14 +61,19 @@ fi
 echo "Unzipping iTop..."
 unzip -o itop.zip
 
-ITOP_DIR="$(ls -d itop* | grep -v '\.zip' | head -n 1 || true)"
-
-if [ -z "$ITOP_DIR" ]; then
-  echo "ERROR: Could not find extracted iTop directory"
-  exit 1
-fi
-
-if [ "$ITOP_DIR" != "itop" ]; then
+# 5a. Normalize iTop directory name
+if [ -d "itop" ]; then
+  echo "Found existing 'itop' directory, using it."
+elif [ -d "web" ]; then
+  echo "Found 'web' directory from archive, renaming to 'itop'."
+  mv web itop
+else
+  ITOP_DIR="$(find . -maxdepth 1 -type d -iname 'itop*' | head -n 1 || true)"
+  if [ -z "$ITOP_DIR" ]; then
+    echo "ERROR: Could not find extracted iTop directory (no 'itop' or 'web' folder)"
+    exit 1
+  fi
+  echo "Found iTop directory '$ITOP_DIR', renaming to 'itop'."
   mv "$ITOP_DIR" itop
 fi
 
