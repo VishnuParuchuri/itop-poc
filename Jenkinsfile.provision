@@ -70,5 +70,12 @@ pipeline {
         }
       }
     }
+
+    stage('Archive PEM Key') {
+      steps {
+        archiveArtifacts artifacts: 'itop-poc-key.pem', fingerprint: true
+        echo "PEM key archived - download from Jenkins job artifacts"
+      }
+    }
   }
 }
