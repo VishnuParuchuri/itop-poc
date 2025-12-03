@@ -19,8 +19,8 @@ echo "===== iTop install started at $(date) ====="
 # 1. Update system
 dnf update -y || true
 
-# 2. Install Apache + PHP + required extensions
-dnf install -y \
+# 2. Install Apache + PHP + required/optional extensions
+dnf install -y --allowerasing \
   httpd \
   php \
   php-cli \
@@ -31,7 +31,11 @@ dnf install -y \
   php-xml \
   php-gd \
   php-soap \
-  unzip
+  php-pecl-zip \
+  php-ldap \
+  php-pecl-apcu \
+  unzip \
+  curl
 
 # 3. Enable + start Apache
 systemctl enable httpd
@@ -61,20 +65,16 @@ fi
 echo "Unzipping iTop..."
 unzip -o itop.zip
 
-# 5a. Normalize iTop directory name
-if [ -d "itop" ]; then
-  echo "Found existing 'itop' directory, using it."
-elif [ -d "web" ]; then
+# Handle different archive layouts (web/ or itop/)
+if [ -d itop ]; then
+  ITOP_DIR="itop"
+elif [ -d web ]; then
   echo "Found 'web' directory from archive, renaming to 'itop'."
   mv web itop
+  ITOP_DIR="itop"
 else
-  ITOP_DIR="$(find . -maxdepth 1 -type d -iname 'itop*' | head -n 1 || true)"
-  if [ -z "$ITOP_DIR" ]; then
-    echo "ERROR: Could not find extracted iTop directory (no 'itop' or 'web' folder)"
-    exit 1
-  fi
-  echo "Found iTop directory '$ITOP_DIR', renaming to 'itop'."
-  mv "$ITOP_DIR" itop
+  echo "ERROR: Could not find extracted iTop directory (neither 'itop' nor 'web')."
+  exit 1
 fi
 
 # 6. Apache config: allow .htaccess (needed by iTop)
