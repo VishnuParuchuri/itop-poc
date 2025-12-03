@@ -60,114 +60,36 @@ pipeline {
         script {
           echo "=== iTop PoC Deployment Complete ==="
           sh 'terraform output'
-          
+
           def itopUrl = sh(
             script: 'terraform output -raw itop_url',
             returnStdout: true
           ).trim()
-          
+
           echo "=== Access iTop at: ${itopUrl} ==="
         }
       }
     }
 
-    stage('Verify User Data Execution') {
+    stage('Deploy iTop to EC2') {
       steps {
         script {
-          def publicIp = sh(
+          // Get EC2 public IP from Terraform output
+          def ec2Ip = sh(
             script: 'terraform output -raw ec2_public_ip',
             returnStdout: true
           ).trim()
-          
-          echo "Checking user-data script execution on ${publicIp}..."
-          
-          // Wait up to 15 minutes for user-data to complete
-          timeout(time: 15, unit: 'MINUTES') {
-            waitUntil {
-              script {
-                try {
-                  // Check if user-data completed
-                  def completionCheck = sh(
-                    script: "ssh -i itop-poc-key.pem -o StrictHostKeyChecking=no -o ConnectTimeout=10 ec2-user@${publicIp} 'grep -q \"USERDATA_COMPLETE\" /var/log/itop-userdata.log 2>/dev/null && echo COMPLETE || echo RUNNING'",
-                    returnStdout: true
-                  ).trim()
-                  
-                  if (completionCheck == 'COMPLETE') {
-                    echo "✅ SUCCESS: User-data script completed successfully!"
-                    
-                    // Show final log summary
-                    def logSummary = sh(
-                      script: "ssh -i itop-poc-key.pem -o StrictHostKeyChecking=no ec2-user@${publicIp} 'tail -20 /var/log/itop-userdata.log'",
-                      returnStdout: true
-                    ).trim()
-                    echo "Final log output:\n${logSummary}"
-                    
-                    return true
-                  } else {
-                    // Show current progress and any errors
-                    def currentLog = sh(
-                      script: "ssh -i itop-poc-key.pem -o StrictHostKeyChecking=no ec2-user@${publicIp} 'tail -10 /var/log/itop-userdata.log 2>/dev/null || echo \"Log not available yet\"'",
-                      returnStdout: true
-                    ).trim()
-                    
-                    echo "⏳ User-data still running. Current progress:"
-                    echo "${currentLog}"
-                    
-                    // Check for common errors
-                    def errorCheck = sh(
-                      script: "ssh -i itop-poc-key.pem -o StrictHostKeyChecking=no ec2-user@${publicIp} 'grep -i \"error\\|failed\\|denied\" /var/log/itop-userdata.log 2>/dev/null || echo \"No errors found\"'",
-                      returnStdout: true
-                    ).trim()
-                    
-                    if (errorCheck != "No errors found") {
-                      echo "⚠️ ERRORS DETECTED:"
-                      echo "${errorCheck}"
-                    }
-                    
-                    sleep(30)
-                    return false
-                  }
-                } catch (Exception e) {
-                  echo "⏳ Waiting for SSH access or log file creation... ${e.getMessage()}"
-                  sleep(30)
-                  return false
-                }
-              }
-            }
-          }
-        }
-      }
-      post {
-        failure {
-          script {
-            def publicIp = sh(
-              script: 'terraform output -raw ec2_public_ip',
-              returnStdout: true
-            ).trim()
-            
-            echo "❌ TIMEOUT: User-data script did not complete within 15 minutes"
-            
-            try {
-              def finalLog = sh(
-                script: "ssh -i itop-poc-key.pem -o StrictHostKeyChecking=no ec2-user@${publicIp} 'cat /var/log/itop-userdata.log 2>/dev/null || echo \"Could not read log file\"'",
-                returnStdout: true
-              ).trim()
-              
-              echo "FULL USER-DATA LOG:"
-              echo "${finalLog}"
-              
-              def cloudInitLog = sh(
-                script: "ssh -i itop-poc-key.pem -o StrictHostKeyChecking=no ec2-user@${publicIp} 'sudo tail -50 /var/log/cloud-init-output.log 2>/dev/null || echo \"Cloud-init log not available\"'",
-                returnStdout: true
-              ).trim()
-              
-              echo "CLOUD-INIT OUTPUT:"
-              echo "${cloudInitLog}"
-              
-            } catch (Exception e) {
-              echo "Could not retrieve logs: ${e.getMessage()}"
-            }
-          }
+
+          echo "Deploying iTop to EC2 at ${ec2Ip}"
+
+          // Ensure key has correct permissions
+          sh 'chmod 600 itop-poc-key.pem || true'
+
+          // Copy the install script and execute it on the instance
+          sh """
+            scp -o StrictHostKeyChecking=no -i itop-poc-key.pem install_itop.sh ec2-user@${ec2Ip}:/home/ec2-user/install_itop.sh
+            ssh -o StrictHostKeyChecking=no -i itop-poc-key.pem ec2-user@${ec2Ip} 'sudo bash /home/ec2-user/install_itop.sh'
+          """
         }
       }
     }
