@@ -28,3 +28,13 @@ output "db_instance_id" {
   description = "RDS instance ID"
   value       = module.rds.db_instance_id
 }
+
+output "key_pair_name" {
+  description = "Name of the generated key pair"
+  value       = module.ec2.key_pair_name
+}
+
+output "private_key_file" {
+  description = "Path to the private key file"
+  value       = module.ec2.private_key_file
+}
