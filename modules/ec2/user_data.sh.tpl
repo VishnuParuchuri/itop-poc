@@ -9,12 +9,12 @@
 set -xe
 
 LOG_FILE="/var/log/itop-userdata.log"
-exec > >(tee -a "${LOG_FILE}" | logger -t user-data -s 2>/dev/console) 2>&1
+exec > >(tee -a "$${LOG_FILE}" | logger -t user-data -s 2>/dev/console) 2>&1
 
 WEB_ROOT="${itop_web_root}"
 
 echo "===== iTop PoC bootstrap starting on $(date) ====="
-echo "WEB_ROOT=${WEB_ROOT}"
+echo "WEB_ROOT=$${WEB_ROOT}"
 
 # -----------------------------
 # 1. Update system packages
@@ -44,8 +44,8 @@ systemctl start httpd
 # -----------------------------
 # 3. Prepare web root
 # -----------------------------
-mkdir -p "${WEB_ROOT}"
-cd "${WEB_ROOT}"
+mkdir -p "$${WEB_ROOT}"
+cd "$${WEB_ROOT}"
 
 # Simple index that redirects to /itop (for nicer UX)
 cat > index.php <<'EOF'
@@ -64,7 +64,7 @@ echo "Downloading iTop from SourceForge..."
 curl -L "https://sourceforge.net/projects/itop/files/latest/download" -o itop.zip
 
 if [ ! -s itop.zip ]; then
-  echo "ERROR: Failed to download iTop archive." >> "${LOG_FILE}"
+  echo "ERROR: Failed to download iTop archive." >> "$${LOG_FILE}"
   # Leave index.php in place so you can see Apache is working
   exit 0
 fi
@@ -73,16 +73,16 @@ echo "Unzipping iTop..."
 unzip -o itop.zip
 
 # Find extracted folder (usually itop-<version>)
-ITOP_DIR=$(ls -d itop* | grep -v '\.zip' | head -n 1 || true)
+ITOP_DIR=$$(ls -d itop* | grep -v '\.zip' | head -n 1 || true)
 
-if [ -z "${ITOP_DIR}" ]; then
-  echo "ERROR: Could not find extracted iTop directory." >> "${LOG_FILE}"
+if [ -z "$${ITOP_DIR}" ]; then
+  echo "ERROR: Could not find extracted iTop directory." >> "$${LOG_FILE}"
   exit 0
 fi
 
 # Rename to "itop" if needed
-if [ "${ITOP_DIR}" != "itop" ]; then
-  mv "${ITOP_DIR}" itop
+if [ "$${ITOP_DIR}" != "itop" ]; then
+  mv "$${ITOP_DIR}" itop
 fi
 
 # -----------------------------
