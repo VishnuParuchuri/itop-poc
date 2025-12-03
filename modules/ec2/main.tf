@@ -31,10 +31,11 @@ resource "aws_instance" "web" {
   associate_public_ip_address = var.associate_public_ip
   key_name                    = aws_key_pair.itop_key_pair.key_name
 
-  user_data = templatefile("${path.module}/user_data.sh", {
-  itop_web_root = var.itop_web_root
-})
-user_data_replace_on_change = true
+  # NOTE: no base64encode here, templatefile already returns plain text
+  user_data = templatefile("${path.module}/user_data.sh.tpl", {
+    itop_web_root = var.itop_web_root
+  })
+  user_data_replace_on_change = true
 
   root_block_device {
     volume_size = var.root_volume_size_gb
