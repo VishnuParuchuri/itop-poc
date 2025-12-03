@@ -4,7 +4,12 @@
 set -xe
 
 LOG_FILE="/var/log/itop-install.log"
-exec > >(tee -a "$LOG_FILE" | logger -t itop-install -s 2>/dev/console) 2>&1
+
+# Ensure log directory exists (it will, but harmless)
+mkdir -p "$(dirname "$LOG_FILE")"
+
+# Simple, safe logging: write to file AND show in Jenkins
+exec > >(tee -a "$LOG_FILE") 2>&1
 
 WEB_ROOT="/var/www/html"
 ITOP_URL="https://sourceforge.net/projects/itop/files/latest/download"
