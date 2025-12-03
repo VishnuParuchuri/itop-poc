@@ -27,7 +27,7 @@ pipeline {
 
     stage('Setup S3 Backend') {
       steps {
-        sh 'aws s3 mb s3://${TF_STATE_BUCKET} --region ${AWS_DEFAULT_REGION} || true'
+        sh 'aws s3 mb s3://${TF_STATE_BUCKET} --region ${AWS_DEFAULT_REGION} || echo "Bucket already exists"'
       }
     }
 
