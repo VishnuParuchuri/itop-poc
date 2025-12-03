@@ -1,10 +1,5 @@
 #!/bin/bash
 # iTop PoC userdata for Amazon Linux 2023
-# This script:
-#  - Installs Apache + PHP + MySQL drivers
-#  - Downloads and installs iTop under ${itop_web_root}/itop
-#  - Creates index.php to redirect to /itop
-#  - Logs to /var/log/itop-userdata.log
 
 set -xe
 
@@ -19,7 +14,6 @@ echo "WEB_ROOT=$${WEB_ROOT}"
 # -----------------------------
 # 1. Update system packages
 # -----------------------------
-# Amazon Linux 2023 uses dnf
 dnf update -y || true
 
 # -----------------------------
@@ -37,7 +31,6 @@ dnf install -y \
   curl \
   unzip
 
-# Enable and start Apache
 systemctl enable httpd
 systemctl start httpd
 
@@ -47,49 +40,51 @@ systemctl start httpd
 mkdir -p "$${WEB_ROOT}"
 cd "$${WEB_ROOT}"
 
-# Simple index that redirects to /itop (for nicer UX)
+# Simple index that redirects to /itop
 cat > index.php <<'EOF'
 <?php
-// Simple redirect to iTop installer
 header("Location: /itop");
 exit;
 ?>
 EOF
 
 # -----------------------------
-# 4. Download iTop
+# 4. Download and extract iTop
 # -----------------------------
 echo "Downloading iTop from SourceForge..."
-# -L is CRITICAL to follow redirects
+cd /tmp
 curl -L "https://sourceforge.net/projects/itop/files/latest/download" -o itop.zip
 
 if [ ! -s itop.zip ]; then
   echo "ERROR: Failed to download iTop archive." >> "$${LOG_FILE}"
-  # Leave index.php in place so you can see Apache is working
   exit 0
 fi
 
 echo "Unzipping iTop..."
-unzip -o itop.zip
+rm -rf /tmp/itop-src
+mkdir -p /tmp/itop-src
+unzip -o itop.zip -d /tmp/itop-src
 
-# Find extracted folder (usually itop-<version>)
-ITOP_DIR=$$(ls -d itop* | grep -v '\.zip' | head -n 1 || true)
+# Find the 'web' directory (where the PHP app lives)
+ITOP_WEB_DIR=$$(find /tmp/itop-src -maxdepth 3 -type d -name "web" | head -n 1 || true)
 
-if [ -z "$${ITOP_DIR}" ]; then
-  echo "ERROR: Could not find extracted iTop directory." >> "$${LOG_FILE}"
+if [ -z "$${ITOP_WEB_DIR}" ]; then
+  echo "ERROR: Could not find iTop 'web' directory after unzip." >> "$${LOG_FILE}"
   exit 0
 fi
 
-# Rename to "itop" if needed
-if [ "$${ITOP_DIR}" != "itop" ]; then
-  mv "$${ITOP_DIR}" itop
-fi
+echo "Copying iTop web files from $${ITOP_WEB_DIR} to $${WEB_ROOT}/itop ..."
+rm -rf "$${WEB_ROOT}/itop"
+mkdir -p "$${WEB_ROOT}/itop"
+cp -r "$${ITOP_WEB_DIR}/"* "$${WEB_ROOT}/itop/"
 
 # -----------------------------
 # 5. Permissions
 # -----------------------------
-chown -R apache:apache itop
-chmod -R 755 itop
+chown -R apache:apache "$${WEB_ROOT}"
+chmod -R 755 "$${WEB_ROOT}"
+
+systemctl restart httpd
 
 echo "===== iTop PoC bootstrap completed at $(date) ====="
 echo "You should now be able to open: http://<EC2_PUBLIC_IP>/itop"
