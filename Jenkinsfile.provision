@@ -2,10 +2,10 @@ pipeline {
   agent any
 
   environment {
-    // These IDs must match Jenkins credentials IDs you create
     AWS_ACCESS_KEY_ID     = credentials('aws-access-key-id')
     AWS_SECRET_ACCESS_KEY = credentials('aws-secret-access-key')
     TF_VAR_rds_password   = credentials('itop-db-password')
+    TF_STATE_BUCKET       = credentials('terraform-state-bucket')
     AWS_DEFAULT_REGION    = 'ap-south-1'
   }
 
@@ -25,9 +25,15 @@ pipeline {
       }
     }
 
+    stage('Setup S3 Backend') {
+      steps {
+        sh 'aws s3 mb s3://${TF_STATE_BUCKET} --region ${AWS_DEFAULT_REGION} || true'
+      }
+    }
+
     stage('Terraform Init') {
       steps {
-        sh 'terraform init'
+        sh 'terraform init -backend-config="bucket=${TF_STATE_BUCKET}"'
       }
     }
 
