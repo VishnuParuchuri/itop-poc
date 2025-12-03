@@ -19,7 +19,8 @@ echo "===== iTop install started at $(date) ====="
 # 1. Update system
 dnf update -y || true
 
-# 2. Install Apache + PHP + required/optional extensions
+# 2. Install Apache + PHP + required extensions
+#    Note: On Amazon Linux 2023 with PHP 8.4, the ZIP extension package name is php8.4-zip
 dnf install -y --allowerasing \
   httpd \
   php \
@@ -31,9 +32,8 @@ dnf install -y --allowerasing \
   php-xml \
   php-gd \
   php-soap \
-  php-pecl-zip \
+  php8.4-zip \
   php-ldap \
-  php-pecl-apcu \
   unzip \
   curl
 
@@ -65,7 +65,8 @@ fi
 echo "Unzipping iTop..."
 unzip -o itop.zip
 
-# Handle different archive layouts (web/ or itop/)
+# iTop archives sometimes extract into "web" directory, sometimes "itop-<version>"
+# Handle both cases safely.
 if [ -d itop ]; then
   ITOP_DIR="itop"
 elif [ -d web ]; then
@@ -73,7 +74,12 @@ elif [ -d web ]; then
   mv web itop
   ITOP_DIR="itop"
 else
-  echo "ERROR: Could not find extracted iTop directory (neither 'itop' nor 'web')."
+  # Fallback: pick first dir starting with itop
+  ITOP_DIR="$(ls -d itop* 2>/dev/null | head -n 1 || true)"
+fi
+
+if [ -z "$ITOP_DIR" ] || [ ! -d "$ITOP_DIR" ]; then
+  echo "ERROR: Could not find extracted iTop directory"
   exit 1
 fi
 
